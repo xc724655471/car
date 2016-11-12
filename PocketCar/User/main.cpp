@@ -1,4 +1,5 @@
 #include "part.h"
+USART mUsart1;
 
 
 
@@ -9,10 +10,19 @@ int main(void){
 
 	SystemInit();																	//open the system timer
 	
+	//mUsart1<<"1temp1"<<"\r\n";
+	//Delay::Ms(1000);
+	
 	function.InitTheRelativeCoordinate();
 	
-	function.InitTwoMotor();													//初始化电机
-//	function.InitMPU6050();												//初始化MPU6050
+	//mUsart1<<"2temp2"<<"\r\n";
+	//Delay::Ms(1000);
+	
+		function.InitTwoMotor();													//初始化电机
+	
+	//mUsart1<<"3temp3"<<"\r\n";
+	//Delay::Ms(1000);
+	//function.InitMPU6050();												//初始化MPU6050
 	
 	Control();
 	return 0;
@@ -34,8 +44,14 @@ void Control(void)
 		{
 			oldTime = curTime;
 			function.UpdateCoordinate();																		//更新重心坐标
+			//function.SendData();																						//test
+			
 			flagCount++;																										//控制标志自增
 		}
+		//mUsart1<<"temp"<<"\r\n";
+		//Delay::Ms(1000);
+		/////////////////////////////////test//////////////////////////////////////
+		
 
 		switch(flagCount)
 		{
@@ -43,10 +59,10 @@ void Control(void)
 							function.PWMControl();																	//PWM波控制
 							break;
 			case 30:																												//60ms一次----------------超声波启动
-//							function.UpdateUltrasonic();														//更新超声波
+							function.UpdateUltrasonic();														//更新超声波
 							break;			
 			case 50:																												//100ms一次----------------MPU数据获得
-//							function.UpdateMPU6050();																//更新MPU6050的数据
+							function.UpdateMPU6050();																//更新MPU6050的数据
 							break;
 			default:
 							if(flagCount >= 199)																			//200ms周期更新一次
@@ -55,6 +71,9 @@ void Control(void)
 								function.SendData();																	//下位机 -> 上位机
 							}break;
 		}
+		
+		
+		///////////////////////test//////////////////////////
 	}	
 }
 

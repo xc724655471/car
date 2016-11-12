@@ -458,7 +458,7 @@ void Function::UpdateCoordinate(void)
 	temp[3] = mAdc5.value;
 	
 	
-	mPressure1 = mPressuremodel.VoltageToPressure(1,temp[0]);
+	mPressure1 = mPressuremodel.VoltageToPressure(1,temp[0]);//压力模型 电压转为压力
 	mPressure2 = mPressuremodel.VoltageToPressure(2,temp[1]);
 	mPressure3 = mPressuremodel.VoltageToPressure(3,temp[2]);
 	mPressure4 = mPressuremodel.VoltageToPressure(4,temp[3]);
@@ -473,7 +473,8 @@ void Function::UpdateCoordinate(void)
 	*	PWM控制，输出给电调来控制电机
 	* @param void
 	*/ 
-	
+static u8 leftflag=0;
+static u8 rightflag=0;
 void Function::PWMControl(void)
 {
 
@@ -493,20 +494,26 @@ void Function::PWMControl(void)
 
 		if(*(mCoordinate.GetCoordinate()+1)>10)
 		{
-			if(*(mCoordinate.GetCoordinate()) < 40)
+			if(*(mCoordinate.GetCoordinate()) < 43)
+				leftflag++;
+			if(leftflag>4)
 			{
 				mRightMotor.SetRotateSpeeed(14);
 				mLeftMotor.SetRotateSpeeed(4);
+				leftflag=0;
 			}
-			if(*mCoordinate.GetCoordinate()>73)								//右转
+			if(*mCoordinate.GetCoordinate()>57)								//右转
+				rightflag++;
+			if(rightflag>4)
 			{
 				mRightMotor.SetRotateSpeeed(4);
 				mLeftMotor.SetRotateSpeeed(14);
+				rightflag=0;
 			}
 			else
 			{
-				mLeftMotor.SetRotateSpeeed(20);
-				mRightMotor.SetRotateSpeeed(20);
+				mLeftMotor.SetRotateSpeeed(18);
+				mRightMotor.SetRotateSpeeed(18);
 			}
 		}
 		else																							//如果没有达到前倾就停止
@@ -600,16 +607,17 @@ void Function::SendData(void)
 								/*适配潘哥的上位机*/								
 								u8 SendDataofCoordinate[3] = {0xaa,*mCoordinate.GetCoordinate(),*(mCoordinate.GetCoordinate()+1)};
 //								usart1.SendData(SendDataofCoordinate,3);
-								
+								/*
 								mUsart1
 								      <<"("<<mPressure1<<") "
 											<<"("<<mPressure2<<") "
 											<<"("<<mPressure3<<") "
 											<<"("<<mPressure4<<") "
 											<<"("<<mPressureAll<<")     ("
-											<<*mCoordinate.GetCoordinate()<<"."
+											<<*mCoordinate.GetCoordinate()<<","
 											<<*(mCoordinate.GetCoordinate()+1)
-											<<")\r\n";
+											<<")\r\n";*/
+								mUsart1<<mPressure1<<"  "<<mPressure2<<"  "<<mPressure3<<"  "<<mPressure4<<"  "<<*mCoordinate.GetCoordinate()<<"  "<<*mCoordinate.GetCoordinate()+1<<"\r\n";
 								
 								
 //									u8 SendDataofCoordinate[3] = {0xaa,dataReceived[2],dataReceived[3]};
@@ -631,7 +639,7 @@ void Function::InitTwoMotor(void)
 //	mRightMotor.InitMotor();
 	mPwmT2.SetDuty(1,10);
 	mPwmT2.SetDuty(2,10);
-	tskmgr.DelayMs(2);
+	tskmgr.DelayMs(2);//初始为2  
 	mPwmT2.SetDuty(1,60);
 	mPwmT2.SetDuty(2,60);
 	tskmgr.DelayS(3);//等待初始化完毕
@@ -696,7 +704,7 @@ int Function::InitTheRelativeCoordinate(void)
 	{
 		mCurTime = TaskManager::Time();	//获得当前时间
 		mDiffTime = mCurTime-mOldTime;	//计算差值时间
-		if(mDiffTime > 0.002)
+		if(mDiffTime > 0.02)//  原值0.02  改为0.002 fail
 		{
 			//更新记录的时间
 			mOldTime = mCurTime;
